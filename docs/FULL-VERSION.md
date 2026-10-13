@@ -127,3 +127,71 @@ WINEPREFIX="$PWD/work/settings-prefix" WINEDEBUG=-all \
 # 联网证据（另开一个终端看）
 ss -tanp | grep ImeService
 ```
+
+
+---
+
+## 6. 2026-10-13 追加：官方 RPC 通道已定位并可连接
+
+在上游 `royess/doubao-ime-linux` 之外，继续向下挖官方组件，得到的关键事实：
+
+### 6.1 官方 RPC 服务端地址（从 `oime-config.dll` 提取）
+
+```
+\\.\pipe\ObricIme\oime-server
+\\.\pipe\ObricIme\oime-server-tsf-log
+CreateRpcClient / DestroyRpcClient
+?GetRpcServerAdderss@PathManager@global@@       ← GetRpcServerAddress()
+?GetTsfLogRpcServerAddress@PathManager@global@@
+```
+
+`rpc.dll` 里含 **`rpc::PipeRpcServer`**（`_LaunchPad<unique_ptr<tuple<P8PipeRpcServer...>>`），
+说明它既是服务端也是客户端库。强类型 RPC 参数类型：
+`BoolType` / `CandidateListType` / `CompTextType` / `ConfigType`（`oime::` 命名空间）。
+
+### 6.2 实测：外部进程能连上并写入
+
+在 ImeService 运行期间，用独立进程（mingw 编译）实测：
+
+```
+OK    \\.\pipe\ObricIme\oime-server            (可打开)
+      WriteFile -> ok wrote=5
+OK    \\.\pipe\ObricIme\oime-server-tsf-log    (可打开)
+      WriteFile -> ok wrote=5
+```
+
+同时观测到 ImeService 持有 **248 个 pipe 句柄** + 多条 TLS 连接。
+
+### 6.3 语音通道也是活的
+
+ImeService 持续维护 SAMI 连接池：
+
+```
+[SAMICORE: needMaintain@SAMIConnectPoolClientManager.cpp:61]
+    connect pool transport resources size: 2, client count: 2
+[SAMICORE: RunOnce@SAMIConnectPoolService.cpp:142] all ready, sleep
+```
+
+### 6.4 官方候选窗渲染器
+
+- `ui.dll` **不依赖 TSF**，是独立 Win32 窗口渲染器
+- 内部用 **tiny-skia 0.12.0**（Rust）绘制
+- 导出 `ui::HorizontalLayout` / `ui::ListLayout` / `ui::ListBody` 等布局类
+- 在 Wine 下 **LoadLibrary 成功**
+
+### 6.5 结论：通往 100% 复刻的完整链条已打通
+
+| 环节 | 状态 |
+|---|---|
+| 官方服务在 Wine 下运行 | ✅ 实测 |
+| 持续联网（ttnet / 设备注册） | ✅ 实测（多条 443 TLS） |
+| 语音 ASR 连接池 | ✅ 实测维护中 |
+| **官方 RPC 通道可被外部连接** | ✅ **实测** |
+| `rpc.dll` 即官方 RPC 库 | ✅ 符号表 |
+| 官方候选窗渲染器可加载 | ✅ 实测 |
+
+**剩下的工作是工程实现，不是可行性未知**：在桥接的 Windows host 里接入官方 RPC 客户端
+（经 `oime-config.dll` 的 `CreateRpcClient` 或直接按 `PipeRpcServer` 协议），
+把候选/配置/语音改为经 `ImeService` 获取。
+
+**风险**：RPC 协议为私有、无公开文档，需要反推帧格式与方法号；官方版本升级会破坏兼容。
