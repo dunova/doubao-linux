@@ -16,11 +16,16 @@ printf '%s══ 1. 服务与集成 ══%s\n' "$C_DIM" "$C_RST"
 if [[ -d "$SRC" ]]; then
   echo "  ${C_DIM}停止服务以跑隔离测试…${C_RST}"
   systemctl --user stop $SERVICE >/dev/null 2>&1; sleep 2
+  # 等 wineserver 退净，并清掉上一次遗留的 socket：
+  # 上游测试的等待循环只检查 socket 文件是否存在，陈旧文件会让它连到已关闭的
+  # 监听端并报 ConnectionRefused（看起来像引擎失败，其实是残留）。
+  for _ in $(seq 1 20); do pgrep -x wineserver >/dev/null || break; sleep 0.5; done
+  rm -f "$SRC/work/keyboard-test.sock"
   OUT=$( cd "$SRC" && timeout 300 python3 scripts/headless.py --prefix keyboard -- python3 tests/integration_keyboard.py 2>&1 )
   echo "$OUT" | grep -q 'official candidates include 你好' \
     && chk "官方引擎返回候选（含「你好」）" 1 || chk "官方引擎返回候选（含「你好」）" 0 "$(echo "$OUT" | tail -3 | tr '\n' ' ')"
   N=$(echo "$OUT" | grep -c '^PASS')
-  echo "  ${C_DIM}集成测试通过项：$N${C_RST}"
+  (( N >= 11 )) && chk "集成测试通过项 ≥ 11（实得 $N）" 1 || chk "集成测试通过项 ≥ 11（实得 $N）" 0
   systemctl --user start $SERVICE >/dev/null 2>&1; sleep 5
 else
   chk "找到源码目录 $SRC" 0
