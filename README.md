@@ -92,7 +92,7 @@ sudo ./install.sh       # 装依赖 + 构建 + 部署（需 sudo 仅用于 pacma
 | 项 | 状态 |
 |---|---|
 | **键盘在 Wayland 下** | 上游集成测试用私有 **X11** 显示；本机在 **Hyprland/Wayland** 装成并可切换，但**未做 Wayland 专项回归** |
-| 账号同步 / 云词库 / AI 联想 | **未接通**（上游明示）。拿到的是**本地引擎**的候选与字频。**为什么、以及通往完全版的路径，见 [docs/FULL-VERSION.md](docs/FULL-VERSION.md)** —— 已实测证：官方 `ImeService.exe`（含字节 ttnet 网络栈与设备注册）**能在 Wine 下运行并联互联网**，缺的是把桥接改成经它取候选 |
+| 账号同步 / 云词库 / AI 联想 | **未接通**（上游明示）。拿到的是**本地引擎**的候选与字频。**为什么、以及通往完全版的完整接口清单，见 [docs/FULL-VERSION.md](docs/FULL-VERSION.md) 与 [docs/OFFICIAL-RPC.md](docs/OFFICIAL-RPC.md)** —— 已实测：官方 `ImeService.exe`（含字节 ttnet 网络栈、设备注册、SAMI 语音、以及 `\\.\pipe\ObricIme\oime-server` RPC 通道）**能在 Wine 下运行并联互联网**，且官方 **24 个 `RpcPipe_*` 方法**已全部枚举出来 |
 | 语音输入 | 上游有桥接，需另配外部 ASR 适配器 |
 | 官方设置窗口 | 可用（Wine Mono），但仅映射键盘相关选项 |
 | 官方引擎联网 | 引擎可能自行联网；详见上游 `docs/privacy.md` |

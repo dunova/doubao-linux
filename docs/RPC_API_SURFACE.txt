@@ -1,0 +1,221 @@
+# 官方豆包 IME · RPC API 面（从二进制符号表提取）
+# 来源: /home/dunova/src/doubao-ime-linux/work/app/versions/v0.9.0.0
+# 生成: 2026-10-13 11:46:58 +0800
+
+## 一、RpcPipe_* 方法名（官方 RPC 方法清单）
+### rpc.dll
+  RpcPipe_AckVoiceCommit
+  RpcPipe_DeActivate
+  RpcPipe_EnsureServerRunning
+  RpcPipe_FocusIn
+  RpcPipe_FocusOut
+  RpcPipe_GetCandidateListUtf8
+  RpcPipe_GetCommitTextUtf8
+  RpcPipe_GetCompTextUtf8
+  RpcPipe_GetInlineCommitTextUtf8
+  RpcPipe_GetInputState
+  RpcPipe_KeyDown
+  RpcPipe_KeyEvent
+  RpcPipe_KeyUp
+  RpcPipe_PeekVoiceCommitUtf8
+  RpcPipe_RegisterTsfNotifySink
+  RpcPipe_SetCursorPos
+  RpcPipe_SetUIElementShowState
+  RpcPipe_ShowContextMenu
+  RpcPipe_SimpleMessage
+  RpcPipe_SimpleMessageEx
+  RpcPipe_UnregisterTsfNotifySink
+  RpcPipe_UpdateHostContextUtf8
+  RpcPipe_UploadModifyPair
+### tsf-oime-core.dll
+  RpcPipe_AckVoiceCommit
+  RpcPipe_DeActivate
+  RpcPipe_EnsureServerRunning
+  RpcPipe_FocusIn
+  RpcPipe_FocusOut
+  RpcPipe_GetCandidateListUtf8
+  RpcPipe_GetCommitTextUtf8
+  RpcPipe_GetCompTextUtf8
+  RpcPipe_GetInlineCommitTextUtf8
+  RpcPipe_GetInputState
+  RpcPipe_KeyDown
+  RpcPipe_KeyEvent
+  RpcPipe_KeyUp
+  RpcPipe_PeekVoiceCommitUtf8
+  RpcPipe_RegisterTsfNotifySink
+  RpcPipe_SetCursorPos
+  RpcPipe_SetUIElementShowState
+  RpcPipe_ShowContextMenu
+  RpcPipe_SimpleMessage
+  RpcPipe_SimpleMessageEx
+  RpcPipe_UnregisterTsfNotifySink
+  RpcPipe_UpdateHostContextUtf8
+  RpcPipe_UploadModifyPair
+
+## 二、rpc.dll 的 RPC 框架符号
+  ConnectNamedPipe
+  CreateFilePipeBusyFailFast
+  CreateNamedPipeA
+  CreateRpcClient
+  DestroyRpcClient
+  GetNamedPipeClientProcessId
+  PipeCall begin op=%u req_size=%u has_pipe=%d
+  PipeCall connect fail stage=%s op=%u has_pipe=%d proc=%s pid=%lu tid=%lu gle=%lu error_size=%u cost_ms=%llu
+  PipeCall CreateFile ok cost_ms=%llu
+  PipeCall ok op=%u resp_size=%u cost_ms=%llu
+  PipeCall read body fail gle=%lu cost_ms=%llu
+  PipeCall read header fail gle=%lu cost_ms=%llu
+  PipeCall write body fail gle=%lu cost_ms=%llu
+  PipeCall write header fail gle=%lu cost_ms=%llu
+  PipeServer CreateNamedPipe failed has_pipe={} gle={}
+  PipeServer Dispatch no callback op={}
+  PipeServer KeyDown parse failed size={}
+  PipeServer KeyUp parse failed size={}
+  PipeServer readiness probe failed has_pipe={} gle={}
+  PipeServer rejected cross-session client server_session={} client_session={}
+  PipeServer security descriptor create failed gle={}
+  PipeServer security descriptor enabled: {}
+  PipeServer UploadModifyPair received json_size={}
+  RpcClient GetCommitText ok. bytes={}
+  RpcClient GetInlineCommitText ok. bytes={}
+  RpcClient PeekVoiceCommit ok. session={} bytes={}
+
+## 三、PathManager 暴露的路径/资源入口（oime-config.dll）
+  GetCloudConfPath
+  GetCloudDir
+  GetConfigDir
+  GetConfigFullPath
+  GetConfigRootPath
+  GetDeviceIDCachePath
+  GetDeviceIDRegisterPath
+  GetDisplayNumber
+  GetFcitxLogFullPath
+  GetInstallRootPath
+  GetLogDir
+  GetLogDumpFullPath
+  GetParfaitWorkPath
+  GetRpcServerAdderss
+  GetServerBinPath
+  GetServerCrashLogFullPath
+  GetServerLogFullPath
+  GetShellLogFullPath
+  GetSysConfPath
+  GetSysDictPath
+  GetSysSkinPath
+  GetToolsBinPath
+  GetToolsLogFullPath
+  GetTrackingPath
+  GetTrackLogFullPath
+  GetTsfLogRpcServerAddress
+  GetUsrDictPath
+  GetWatchdogBinPath
+
+## 四、候选窗/UI 相关符号
+### ui.dll
+  AppPolicyGetWindowingModel
+  AVChildLayout
+  AVHorizontalLayout
+  AVListLayout
+  AVTabLayout
+  AVTileExLayout
+  AVTileLayout
+  AVVerticalLayout
+  AVWindow
+  AVWindowImpBase
+  AVWindowInterface
+  AVWindowWin
+  BindTabLayoutName
+  BWindowInterface
+  CenterWindow
+  ChildLayout
+  ChildLayoutUI
+  CreateWindowExW
+  DefWindowProcA
+  DefWindowProcW
+  DestroyWindow
+  ErrorLayoutError
+  founddataWindowbox
+  GetActiveWindow
+  GetBindTabLayoutIndex
+### tsf-oime-core.dll
+  AppPolicyGetWindowingModel
+  AUITfCandidateListUIElement
+  AVOimeCandidateListUIElement
+  CheckForegroundWindowStyleAndRect:
+  CreateWindowExW
+  DefWindowProcW
+  DestroyWindow
+  GetActiveWindow
+  GetDesktopWindow
+  GetDpiForWindow
+  GetForegroundWindow
+  GetKeyboardLayout
+  GetProcessWindowStation
+  GetShellWindow
+  GetSysSkinPath
+  GetWindowLongPtrA
+  GetWindowLongPtrW
+  GetWindowRect
+  GetWindowThreadProcessId
+  IsWindow
+  LoadKeyboardLayoutW
+  MonitorFromWindow
+  nEnsureNotifyWindow
+  OimeCandidateListUIElement::GetCount
+  OimeCandidateListUIElement::GetSelection
+
+## 五、云端/账号/同步相关符号
+### ime_net_sdk.dll
+  2[ime-net-sdk-kernal]:async_on_close, close failed 
+  api-ms-win-core-synch-l1-2-0.dll
+  ArrayRangeSetPADDINGPINGACKACK_ECNRESET_STREAMSTOP_SENDINGCRYPTONEW_TOKENMAX_DATAMAX_STREAM_DATAMAX_STREAMS_BIDIMAX_STREAMS_UNIDATA_BLOCKEDSTREAM_DATA_BLOCKEDSTREAMS_BLOCKED_BIDISTREAMS_BLOCKED_UNINEW_CONNECTION_IDRETIRE_CONNECTION_IDPATH_CHALLENGEPATH_RESPONSECONNECTION_CLOSEAPPLICATION_CLOSEHANDSHAKE_DONEACK_FREQUENCYIMMEDIATE_ACK	<unknown 
+  A Tokio 1.x context was found, but it is being shutdown.Cannot drop a runtime in a context where blocking is not allowed. This happens when a runtime is dropped from within an asynchronous context.C:\Users\Admin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.52.3\src\runtime\blocking\shutdown.rs
+  Attempted to register a `DefaultCallsite` that already exists! This will cause an infinite loop when attempting to read from the callsite cache. This is likely a bug! You should only need to call `DefaultCallsite::register` once per `DefaultCallsite`.
+  attempt to divide by zeroattempt to calculate the remainder with a divisor of zero`async fn` resumed after completion`async fn` resumed after panickingassertion failed: !buf.is_empty()
+  Cannot start a runtime from within a runtime. This happens because a function (like `block_on`) attempted to block the current thread while the thread is being used to drive asynchronous tasks.C:\Users\Admin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.52.3\src\runtime\scheduler\multi_thread\park.rs
+  Cannot start a runtime from within a runtime. This happens because a function (like `block_on`) attempted to block the current thread while the thread is being used to drive asynchronous tasks.multicurrent
+    consultationcommunity ofthe nationalit should beparticipants align="leftthe greatestselection ofsupernaturaldependent onis mentionedallowing thewas inventedaccompanyinghis personalavailable atstudy of theon the otherexecution ofHuman Rightsterms of theassociationsresearch andsucceeded bydefeated theand from thebut they arecommander ofstate of theyears of agethe study of<ul class="splace in thewhere he was<li class="fthere are nowhich becamehe publishedexpressed into which thecommissionerfont-weight:territory ofextensions">Roman Empireequal to theIn contrast,however, andis typicallyand his wife(also called><ul class="effectively evolved intoseem to havewhich is thethere was noan excellentall of thesedescribed byIn practice,broadcastingcharged withreflected insubjected tomilitary andto the pointeconomicallysetTargetingare actuallyvictory over();</script>continuouslyrequired forevolutionaryan effectivenorth of the, which was front of theor otherwisesome form ofhad not beengenerated byinformation.permitted toincludes thedevelopment,entered intothe previousconsistentlyare known asthe field ofthis type ofgiven to thethe title ofcontains theinstances ofin the northdue to theirare designedcorporationswas that theone of thesemore popularsucceeded insupport fromin differentdominated bydesigned forownership ofand possiblystandardizedresponseTextwas intendedreceived theassumed thatareas of theprimarily inthe basis ofin the senseaccounts fordestroyed byat least twowas declaredcould not beSecretary ofappear to bemargin-top:1/^\s+|\s+$/ge){throw e};the start oftwo separatelanguage andwho had beenoperation ofdeath of thereal numbers	<link rel="provided thethe story ofcompetitionsenglish (UK)english (US)
+  C:\Users\Admin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quinn-proto-0.11.16\src\token_memory_cache.rs
+  C:\Users\Admin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quinn-proto-0.11.16\src\token.rs
+  C:\Users\Admin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\reqwest-0.12.28\src\async_impl\body.rs
+  C:\Users\Admin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\reqwest-0.12.28\src\async_impl\client.rs
+  C:\Users\Admin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\reqwest-0.12.28\src\async_impl\request.rs
+  C:\Users\Admin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\reqwest-0.12.28\src\async_impl\response.rs
+  C:\Users\Admin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.52.3\src\sync\mpsc\list.rs
+  C:\Users\Admin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.52.3\src\sync\oneshot.rs
+  discarding Initial with invalid retry tokendropping short packet during handshakediscarding possible duplicate packetfailed to authenticate packet
+  duplicate reset token
+  During tdevelopersartificialequivalentoriginatedCommissionattachment<span id="there wereNederlandsbeyond theregisteredjournalistfrequentlyall of thelang="en" </style>
+  event C:\Users\Admin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quinn-proto-0.11.16\src\connection\mod.rs:2812token
+  event C:\Users\Admin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quinn-proto-0.11.16\src\token_memory_cache.rs:31
+### ImeService.exe
+  2[ime-net-sdk-kernal]:async_on_close, close failed 
+  administrator_account_query_failed
+  `anonymous-namespace'::BuildImeNetCloudRequestData
+  api-ms-win-core-synch-l1-2-0.dll
+  ApplicationClosedResetTimedOutLocallyClosedCidsExhaustedServerValidationTokenConfiglifetime
+  AppLog_getDeviceId
+  AppLog_registerDidObserver
+  ArrayRangeSetPADDINGPINGACKACK_ECNRESET_STREAMSTOP_SENDINGCRYPTONEW_TOKENMAX_DATAMAX_STREAM_DATAMAX_STREAMS_BIDIMAX_STREAMS_UNIDATA_BLOCKEDSTREAM_DATA_BLOCKEDSTREAMS_BLOCKED_BIDISTREAMS_BLOCKED_UNINEW_CONNECTION_IDRETIRE_CONNECTION_IDPATH_CHALLENGEPATH_RESPONSECONNECTION_CLOSEAPPLICATION_CLOSEHANDSHAKE_DONEACK_FREQUENCYIMMEDIATE_ACK	<unknown 
+  async flush: thread pool doesn't exist anymore
+  async log: thread pool doesn't exist anymore
+  A Tokio 1.x context was found, but it is being shutdown.Cannot drop a runtime in a context where blocking is not allowed. This happens when a runtime is dropped from within an asynchronous context.C:\Users\Admin\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.52.3\src\runtime\blocking\shutdown.rs
+  attempt to divide by zero`gen fn` should just keep returning `None` after completionattempt to calculate the remainder with a divisor of zeroattempt to add with overflowattempt to divide with overflowattempt to multiply with overflowattempt to negate with overflowattempt to calculate the remainder with overflowattempt to shift left with overflowattempt to shift right with overflowattempt to subtract with overflow`async fn` resumed after completion`gen fn` resumed after async dropcoroutine resumed after completion`gen fn` should just keep returning `None` after panicking`async gen fn` resumed after completion`async fn` resumed after async drop`async fn` resumed after panickingcoroutine resumed after async dropcoroutine resumed after panicking`async gen fn` resumed after async drop`async gen fn` resumed after panicking
+  .?AV?$Delegate@VCloud@ui@@V12@@ui@@
+  .?AV?$enable_shared_from_this@Vasync_logger@spdlog@@@std@@
+  .?AV?$_Func_base@AEBV?$basic_string@_SU?$char_traits@_S@std@@V?$allocator@_S@2@@std@@AEBUCloudItem@pinyin@oime_engine@@@std@@
+  .?AV?$_Func_base@_NAEAUCloudAssoRespItem@pinyin@oime_engine@@@std@@
+  .?AV?$_Func_impl_no_alloc@V<lambda_57989c83cef1a32ac8279380d7ba0f8a>@@AEBV?$basic_string@_SU?$char_traits@_S@std@@V?$allocator@_S@2@@std@@AEBUCloudItem@pinyin@oime_engine@@@std@@
+  .?AV?$_Func_impl_no_alloc@V<lambda_69c66c416b93005d1488cfc67d5fcfb1>@@_NAEAUCloudAssoRespItem@pinyin@oime_engine@@@std@@
+  .?AV?$MapEntryImpl@VFeatures_FeatureEntry_DoNotUse@cloud_convert@@VMessageLite@protobuf@google@@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@H$08$04@internal@protobuf@google@@
+  .?AV?$MapEntryLite@VFeatures_FeatureEntry_DoNotUse@cloud_convert@@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@H$08$04@internal@protobuf@google@@
+  .?AV?$_Ref_count_obj@Vasync_logger@spdlog@@@std@@
+  .?AVasync_logger@spdlog@@
+### oime-config.dll
+  enable_cloud
+  expecting another \u token to begin the second half of a unicode surrogate pair
+  \files\bin\deviceregister.dll
+  ?GetCloudConfPath@PathManager@global@@QEBA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+  ?GetCloudDir@PathManager@global@@QEBA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+  ?GetDeviceIDCachePath@PathManager@global@@QEAA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+  ?GetDeviceIDRegisterPath@PathManager@global@@QEAA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
