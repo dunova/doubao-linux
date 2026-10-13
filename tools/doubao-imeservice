@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# doubao-imeservice —— 官方豆包 IME 主服务（ImeService.exe）的常驻启动器
+#
+# 为什么需要它：云候选、账号、词库同步、语音 ASR 全部在 ImeService 里，
+# 键盘引擎 rpc.dll 本身没有任何网络能力。要让这些工作，官方服务必须常驻。
+#
+# 设计要点：
+#   * 用自己的 Xvfb（不占用用户的 DISPLAY）
+#   * 直接用 WINEPREFIX，**不加 flock** —— 否则会挡住 doubao-settings
+#   * 单例：ImeService 自己会检测重复实例并退出，这里只做日志与重启语义
+# ==============================================================================
+set -uo pipefail
+
+SRC="${DOUBAO_SRC:-$HOME/src/doubao-ime-linux}"
+if [[ -n "${DOUBAO_STATE_DIR:-}" ]]; then
+  STATE="$DOUBAO_STATE_DIR"
+else
+  STATE="$SRC/work"
+fi
+PREFIX="$STATE/settings-prefix"
+IME_EXE="${DOUBAO_IME_SERVICE:-$STATE/app/versions/v0.9.0.0/ImeService.exe}"
+XVFB_BIN="${DOUBAO_XVFB:-Xvfb}"
+LOG="$STATE/imeservice.log"
+
+log() { printf '[imeservice] %s\n' "$*"; }
+
+[[ -f "$IME_EXE" ]] || { log "找不到 $IME_EXE —— 先跑 install.sh"; exit 1; }
+[[ -d "$PREFIX" ]] || { log "找不到 Wine prefix $PREFIX —— 先跑 install.sh"; exit 1; }
+
+# ── 找一个空闲显示号 ─────────────────────────────────────────────────────
+for d in $(seq 90 99); do
+  [[ -e "/tmp/.X11-unix/X$d" ]] && continue
+  DISPNUM="$d"; break
+done
+: "${DISPNUM:=95}"
+
+cleanup() {
+  [[ -n "${XVFB_PID:-}" ]] && kill "$XVFB_PID" 2>/dev/null
+  WINEPREFIX="$PREFIX" wineserver -k 2>/dev/null
+  exit 0
+}
+trap cleanup TERM INT
+
+# ── 启动私有 Xvfb ────────────────────────────────────────────────────────
+log "启动 Xvfb :$DISPNUM"
+"$XVFB_BIN" ":$DISPNUM" -screen 0 1280x800x24 -nolisten tcp -ac >>"$LOG" 2>&1 &
+XVFB_PID=$!
+sleep 2
+if ! kill -0 "$XVFB_PID" 2>/dev/null; then
+  log "Xvfb 启动失败，见 $LOG"
+  exit 1
+fi
+
+# ── 跑 ImeService（前台阻塞；systemd 负责重启）──────────────────────────
+log "启动 ImeService（prefix=$PREFIX）"
+export WINEPREFIX="$PREFIX"
+export WINEDEBUG="${WINEDEBUG:--all}"
+export DISPLAY=":$DISPNUM"
+export DOUBAO_PRIVATE_DISPLAY=1
+unset WAYLAND_DISPLAY
+
+# 不用 exec：让脚本留在前台，好在收到 TERM 时能顺手收掉 Xvfb / wineserver
+wine "$IME_EXE"
+log "ImeService 退出（rc=$?）"
+cleanup

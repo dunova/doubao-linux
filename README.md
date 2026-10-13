@@ -114,3 +114,25 @@ sudo ./install.sh       # 装依赖 + 构建 + 部署（需 sudo 仅用于 pacma
 本仓库的脚本与文档：MIT。
 上游桥接：MIT（royess/doubao-ime-linux）。
 豆包官方引擎与词库：归字节跳动所有，**不随本仓库分发**，安装时从官方渠道下载并校验。
+
+---
+
+## 文档索引
+
+| 文档 | 内容 |
+|---|---|
+| [docs/ROADMAP.md](docs/ROADMAP.md) | **最终版路线图**：P0–P7 阶段计划、目标架构、已知未知、隔离与回退 |
+| [docs/PROTOCOL.md](docs/PROTOCOL.md) | **RPC 协议契约**（实测确认）：客户端调用形态、14 个 protobuf 消息、方法↔参数映射 |
+| [docs/OFFICIAL-RPC.md](docs/OFFICIAL-RPC.md) | 官方 RPC 接口面全清单、24 个方法与反汇编签名、施工路线 |
+| [docs/FULL-VERSION.md](docs/FULL-VERSION.md) | 为什么现在拿不到云、官方服务栈在 Wine 下的实测记录 |
+| [docs/PERFORMANCE.md](docs/PERFORMANCE.md) | 延迟/内存实测，以及两条被否掉的优化 |
+| [docs/RPC_API_SURFACE.txt](docs/RPC_API_SURFACE.txt) · [docs/EXPORTS.txt](docs/EXPORTS.txt) · [docs/PROTOBUF_SCHEMA.txt](docs/PROTOBUF_SCHEMA.txt) | 原始提取数据 |
+
+## 工具
+
+| 工具 | 用途 |
+|---|---|
+| [tools/pipe_probe.c](tools/pipe_probe.c) | 探测 `\\.\pipe\ObricIme\oime-server` 可连性 |
+| [tools/doubao-rpc-probe.c](tools/doubao-rpc-probe.c) | 枚举可 `GetProcAddress` 的 `RpcPipe_*`，试调 `CreateRpcClient` |
+| [tools/doubao-rpc-live.c](tools/doubao-rpc-live.c) | 实测 RPC 活性（`EnsureServerRunning`）并抓 protobuf 证据 |
+| [tools/doubao-imeservice](tools/doubao-imeservice) | ImeService 常驻启动器（systemd 用） |

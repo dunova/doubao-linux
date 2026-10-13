@@ -1,0 +1,61 @@
+# 官方豆包 IME · protobuf 消息与字段（从二进制挖出）
+# 来源: /home/dunova/src/doubao-ime-linux/work/app/versions/v0.9.0.0
+# 生成: 2026-10-13 13:06:45 +0800
+# 依据: RpcPipe_KeyEvent 实测报错 'String field oime.KeyCode.process_name'
+
+## 一、所有 oime.* 消息类型名
+### rpc.dll
+  oime.BoolType
+  oime.CandidateListType
+  oime.CandidateListType.candidates
+  oime.CompTextType
+  oime.CompTextType.inline_text
+  oime.ConfigType
+  oime.ConfigType.config
+  oime.CursorPos
+  oime.Empty
+  oime.ImeChangedType
+  oime.ImeChangedType.from
+  oime.ImeChangedType.ime_current
+  oime.ImeChangedType.ime_last
+  oime.InputState
+  oime.Int32Type
+  oime.KeyCode
+  oime.KeyCode.process_name
+  oime.KeyProcessResult
+  oime.ReportEventType
+  oime.ReportEventType.event_name
+  oime.ReportEventType.josn_value
+  oime.SimpleMsgType
+  oime.SimpleMsgType.process_name
+  oime.StringType
+  oime.StringType.value
+
+## 二、候选/按键/输入状态相关的 protobuf 字段名
+### rpc.dll
+  candidate context cursor page pair prefix process_name selection 
+### tsf-oime-core.dll
+  candidate context cursor modify pair selection voice 
+### ImeService.exe
+  candidate context cursor input_state key_code modifier modify page pair prefix process_name selection session_id suffix voice 
+
+## 三、C++ 侧 protobuf 生成的类型（符号表）
+### rpc.dll
+  AVBoolType@oime@@
+  AVCandidateListType@oime@@
+  AVCompTextType@oime@@
+  AVConfigType@oime@@
+  AVContextMenuRequest@oime@@
+  AVCursorPos@oime@@
+  AVEmpty@oime@@
+  AVImeChangedType@oime@@
+  AVInputState@oime@@
+  AVKeyCode@oime@@
+  AVKeyProcessResult@oime@@
+  AVReportEventType@oime@@
+  AVSimpleMsgType@oime@@
+  AVStringType@oime@@
+  oime::update
+  Type@oime@@
+### tsf-oime-core.dll
+  AVDelayedCursorPosEditSession@oime@@
