@@ -224,3 +224,90 @@ grep -E 'ttnet|frontier|enable_cloud' /tmp/is.log
 # 官方 RPC 管道可连性（本仓库带探测程序源码）
 #   outputs/doubao_ime_linux_20261013/pipe_probe.c
 ```
+
+---
+
+## 9. 2026-10-13 追加：官方 RPC 客户端 API 的导出与签名（反汇编实测）
+
+### 9.1 `rpc.dll` 的纯 C 具名导出（可直接 `GetProcAddress`）
+
+```
+CreateRpcClient                     ✔ 实测 GetProcAddress 成功
+DestroyRpcClient                    ✔ 实测 GetProcAddress 成功
+RpcPipe_KeyEvent
+RpcPipe_KeyDown / RpcPipe_KeyUp
+RpcPipe_GetInputState
+RpcPipe_GetCompTextUtf8
+RpcPipe_GetInlineCommitTextUtf8
+RpcPipe_SetCursorPos
+RpcPipe_SetUIElementShowState
+RpcPipe_RegisterTsfNotifySink
+RpcPipe_AckVoiceCommit
+RpcPipe_PeekVoiceCommitUtf8
+```
+
+另有 C++ 修饰名导出（需用修饰名取）：
+```
+?CreateRpcServer@rpc@@YAPEAVRpcServer@1@XZ
+?DestroyRpcServer@rpc@@YAXPEAVRpcServer@1@@Z
+?GetFocusOwnerCaps@rpc@@YAIXZ
+?GetFocusOwnerPid@rpc@@YAKXZ
+?IsPidImeActive@rpc@@YA_NK@Z
+```
+
+### 9.2 `CreateRpcClient` 的签名（RVA 0x12e60 反汇编）
+
+```asm
+180012e60  push %rbx
+180012e62  sub  $0x30,%rsp
+180012e6f  mov  %rcx,%rbx              ; 唯一参数（Win64 第一参数）
+180012e72  mov  $0x30,%ecx
+180012e77  call 0x18016311c            ; operator new(0x30) → 48 字节对象
+180012e81  test %rax,%rax
+180012e84  je   0x180012e98            ; 失败 → 返回 0
+180012e86  mov  %rbx,%rdx              ; 原参数 → 构造第 2 参
+180012e89  mov  %rax,%rcx              ; 新对象 → 构造第 1 参(this)
+180012e8c  call 0x180010260            ; 构造
+180012e92  ret
+```
+
+**推导签名：**
+```c
+typedef void* (*CreateRpcClient_t)(void *param);   // 失败返回 NULL
+```
+
+### 9.3 `DestroyRpcClient` 的签名（RVA 0x13040）
+
+```asm
+180013040  test %rcx,%rcx
+180013043  je   0x180013050      ; 空指针直接返回
+180013045  mov  (%rcx),%rax      ; 取 vtable
+180013048  mov  $0x1,%edx        ; 参数 1
+18001304d  jmp  *(%rax)          ; 虚调用 vtable[0]（deleting destructor）
+180013050  ret
+```
+
+**推导签名：**
+```c
+typedef void (*DestroyRpcClient_t)(void *client);
+```
+
+### 9.4 这意味着什么
+
+桥接的 Windows 宿主可以**直接使用官方 RPC 客户端**，不必从头反推私有线协议：
+
+```c
+HMODULE lib = LoadLibraryA("rpc.dll");
+void *(*mk)(void*)  = (void*)GetProcAddress(lib, "CreateRpcClient");
+void  (*del)(void*) = (void*)GetProcAddress(lib, "DestroyRpcClient");
+void *client = mk(param);      // 连接 \\.\pipe\ObricIme\oime-server
+/* ... 用 RpcPipe_* 方法 ... */
+del(client);
+```
+
+**仍待确定（下一步）**：
+1. `param` 的具体形态（疑似指向 RPC 服务地址的 `std::string*`，
+   可由 `oime-config.dll` 的 `GetRpcServerAdderss()` 取得）—— 需试调观察
+2. `RpcPipe_*` 作为**导出函数**的调用方式：它们可能本身就是可 `GetProcAddress` 的入口，
+   也可能是宏映射到 `PipeCall(op, ...)`；`PipeCall begin op=%u` 表明底层按 **op 号** 分发
+3. op 号 ↔ 方法名的对应表（需从调用点或响应行为反推）
