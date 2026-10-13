@@ -94,6 +94,8 @@ sudo ./install.sh       # 装依赖 + 构建 + 部署（需 sudo 仅用于 pacma
 | **键盘在 Wayland 下** | 上游集成测试用私有 **X11** 显示；本机在 **Hyprland/Wayland** 装成并可切换，但**未做 Wayland 专项回归** |
 | 账号同步 / 云词库 / AI 联想 | **未接通**（上游明示）。拿到的是**本地引擎**的候选与字频。**为什么、以及通往完全版的完整接口清单，见 [docs/FULL-VERSION.md](docs/FULL-VERSION.md) 与 [docs/OFFICIAL-RPC.md](docs/OFFICIAL-RPC.md)** —— 已实测：官方 `ImeService.exe`（含字节 ttnet 网络栈、设备注册、SAMI 语音、以及 `\\.\pipe\ObricIme\oime-server` RPC 通道）**能在 Wine 下运行并联互联网**，且官方 **24 个 `RpcPipe_*` 方法**已全部枚举出来 |
 | 语音输入 | 上游有桥接，需另配外部 ASR 适配器 |
+| **候选词直连官方引擎** | ✅ **已打通（实测，v1.1.0）**：从 `\\.\pipe\ObricIme\oime-server` 可取回非空候选（`nihao` → `你好`）。**尚未接入 Fcitx5 前端**——宿主目前只输出 JSON。见 [docs/RPC_FRAME_FINDINGS.md](docs/RPC_FRAME_FINDINGS.md) |
+| **微信中候选窗黑屏** | ⚠️ 未解决（候选数据有效但画面全黑）。根因方向：Hyprland `xwayland:force_zero_scaling=true` 造成坐标/缩放空间错配。见 [docs/CANDIDATE-WINDOW-XWAYLAND.md](docs/CANDIDATE-WINDOW-XWAYLAND.md) |
 | 官方设置窗口 | 可用（Wine Mono），但仅映射键盘相关选项 |
 | 官方引擎联网 | 引擎可能自行联网；详见上游 `docs/privacy.md` |
 | 版本固定 | 只支持豆包 Windows **0.9.0.0**（脚本校验 SHA-256，拒绝其他版本） |
@@ -127,6 +129,9 @@ sudo ./install.sh       # 装依赖 + 构建 + 部署（需 sudo 仅用于 pacma
 | [docs/FULL-VERSION.md](docs/FULL-VERSION.md) | 为什么现在拿不到云、官方服务栈在 Wine 下的实测记录 |
 | [docs/PERFORMANCE.md](docs/PERFORMANCE.md) | 延迟/内存实测，以及两条被否掉的优化 |
 | [docs/RPC_API_SURFACE.txt](docs/RPC_API_SURFACE.txt) · [docs/EXPORTS.txt](docs/EXPORTS.txt) · [docs/PROTOBUF_SCHEMA.txt](docs/PROTOBUF_SCHEMA.txt) | 原始提取数据 |
+| [docs/RPC_FRAME_FINDINGS.md](docs/RPC_FRAME_FINDINGS.md) | **候选取回打通报告**（v1.1.0）：根因、真实 ABI、实测候选原文 |
+| [docs/V091_VERSION_TRACKING.md](docs/V091_VERSION_TRACKING.md) | 0.9.2.7 追版：账号/同步子系统新增，仍无登录入口 |
+| [docs/CANDIDATE-WINDOW-XWAYLAND.md](docs/CANDIDATE-WINDOW-XWAYLAND.md) | 微信候选窗黑屏排查（含 GUI 截图验证与被证伪的假设） |
 
 ## 工具
 
@@ -136,3 +141,5 @@ sudo ./install.sh       # 装依赖 + 构建 + 部署（需 sudo 仅用于 pacma
 | [tools/doubao-rpc-probe.c](tools/doubao-rpc-probe.c) | 枚举可 `GetProcAddress` 的 `RpcPipe_*`，试调 `CreateRpcClient` |
 | [tools/doubao-rpc-live.c](tools/doubao-rpc-live.c) | 实测 RPC 活性（`EnsureServerRunning`）并抓 protobuf 证据 |
 | [tools/doubao-imeservice](tools/doubao-imeservice) | ImeService 常驻启动器（systemd 用） |
+| [tools/doubao-rpc-host.c](tools/doubao-rpc-host.c) | **可用**的候选 RPC 宿主（v1.1.0 修复）：向官方引擎发键并取回候选 |
+| [tools/wechat-wayland-test.sh](tools/wechat-wayland-test.sh) | 微信 Wayland 原生启动测试（**不替换**原启动器，用于验证黑屏假设） |
