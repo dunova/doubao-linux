@@ -3,6 +3,26 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [2.1.0] - 2026-10-29
+
+把安装收敛成字面意义上的一条命令。
+
+### 新增
+
+- **`bootstrap.sh`**：在线自举入口。一条命令取回对应版本的仓库、校验 tag、
+  然后交给 `install.sh`，不再需要手动 `git clone`。
+  ```bash
+  bash <(curl -fsSL https://raw.githubusercontent.com/dunova/doubao-linux/master/bootstrap.sh)
+  ```
+- **自动加入 `input` 组**：`install.sh` 检测到当前用户不在组内时自动追加，
+  并记入台账。新增 `--no-group-change` 可关闭此行为。
+  组变更需重新登录才生效，脚本会在结尾明确提示。
+
+### 修复
+
+- `curl … | bash` 场景下 `sudo` 读不到密码：`bootstrap.sh` 会把 stdin 重新绑到
+  `/dev/tty`；确实没有终端时明确报错，而不是静默卡住。
+
 ## [2.0.0] - 2026-10-29
 
 从「只装打字」升级为「打字 + 语音 + 外观」的完整套件。安装脚本重构为分阶段模块。

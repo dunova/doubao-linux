@@ -2,7 +2,7 @@
 
 **在 Linux 上复刻豆包输入法：打字、语音、外观，一条命令装齐。**
 
-**v2.0.0** · Linux x86_64 · 非官方
+**v2.1.0** · Linux x86_64 · 非官方
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux%20x86__64-lightgrey.svg)](#前置条件)
@@ -58,23 +58,52 @@
 - **Arch 系发行版**（脚本用 pacman 装系统包；其他发行版见 [docs/INSTALL.md](docs/INSTALL.md)）
 - **Fcitx5** 已在用
 - 约 **6 GB** 磁盘（Wine + 引擎 + 运行时）
-- 当前用户需在 **input 组**（用于 evdev 快捷键与文字注入）
+
+`input` 组不用你操心——安装器会自己加，装完注销重登一次即可。
+
+### 安装：一条命令
 
 ```bash
-sudo usermod -aG input "$USER"   # 若还没在 input 组
-# 注销并重新登录
+bash <(curl -fsSL https://raw.githubusercontent.com/dunova/doubao-linux/master/bootstrap.sh)
 ```
 
-### 安装
+就这一条。它会取回对应版本的仓库、校验、然后自动装完打字、语音、外观三部分，起好服务，
+并在需要时把当前用户加进 `input` 组。
+
+中途会问两次 `sudo` 密码：一次装系统包，一次改组（已在该组则不问）。
+
+> 用 `bash <(curl …)` 而不是 `curl … | bash`：前者把终端留给脚本，`sudo` 才能正常询问密码。
+> 后者会自动尝试接管终端，实在没有终端时会明确报错而不是卡住。
+
+装完唯一还要你动手的是：**注销并重新登录一次**（组变更只对新会话生效），然后
+`systemctl --user restart fcitx5` 并 `Ctrl+Space` 切到「豆包」。打字其实装完即可用，
+语音注入要等重登。
+
+**如果想先看看它要做什么**，加 `--dry-run`：
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/dunova/doubao-linux/master/bootstrap.sh) --dry-run
+```
+
+**想跳过某一部分**，参数会透传给安装器：
+
+```bash
+# 只要打字，不要语音和外观
+bash <(curl -fsSL …/bootstrap.sh) --no-voice --no-appearance
+```
+
+### 或者从源码装
 
 ```bash
 git clone https://github.com/dunova/doubao-linux.git
 cd doubao-linux
-
-./verify-deps.sh         # 只读检查：缺什么、磁盘够不够、Python 版本对不对
-./install.sh --dry-run   # 先看它打算做什么
-./install.sh             # 真装
+./install.sh
 ```
+
+两种方式装出来的东西完全一样。源码方式多了 `./verify-deps.sh`（只读检查）和
+`./install.sh --dry-run`（预演）可用，适合想先审查脚本的人。
+
+### 安装器做了什么
 
 `install.sh` 只在装系统包时调用一次 `sudo pacman`，其余全部以当前用户身份完成。它会：
 
@@ -108,6 +137,7 @@ systemctl --user restart fcitx5
 | `--no-voice` | 不装语音，只装打字 |
 | `--no-appearance` | 不套外观，保留你自己的主题 |
 | `--only-appearance` | 只重套外观（打字/语音已装好时用） |
+| `--no-group-change` | 不自动把当前用户加入 `input` 组 |
 
 ---
 

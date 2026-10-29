@@ -51,7 +51,7 @@ ledger_add "merge-ini" "$target" "$bak" "说明"
 
 ```bash
 # 语法
-for f in install.sh rollback.sh verify.sh verify-deps.sh scripts/*.sh; do bash -n "$f" || echo "FAIL $f"; done
+for f in bootstrap.sh install.sh rollback.sh verify.sh verify-deps.sh scripts/*.sh; do bash -n "$f" || echo "FAIL $f"; done
 python3 -m py_compile scripts/merge_conf.py
 
 # 流程（不落盘）

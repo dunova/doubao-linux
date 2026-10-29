@@ -16,7 +16,7 @@ jobs:
       - name: Bash 语法
         run: |
           fail=0
-          for f in install.sh rollback.sh verify.sh verify-deps.sh scripts/*.sh; do
+          for f in bootstrap.sh install.sh rollback.sh verify.sh verify-deps.sh scripts/*.sh; do
             if bash -n "$f"; then echo "OK   $f"; else echo "FAIL $f"; fail=1; fi
           done
           exit $fail
@@ -28,7 +28,7 @@ jobs:
         uses: ludeeus/action-shellcheck@master
         with:
           scandir: '.'
-          additional_files: 'install.sh rollback.sh verify.sh verify-deps.sh'
+          additional_files: 'bootstrap.sh install.sh rollback.sh verify.sh verify-deps.sh'
           severity: warning
         continue-on-error: true
 
@@ -62,7 +62,7 @@ jobs:
       - name: 脚本可执行位
         run: |
           set -e
-          for f in install.sh rollback.sh verify.sh verify-deps.sh; do
+          for f in bootstrap.sh install.sh rollback.sh verify.sh verify-deps.sh; do
             [[ -x "$f" ]] || { echo "::error::$f 缺少可执行位"; exit 1; }
           done
 

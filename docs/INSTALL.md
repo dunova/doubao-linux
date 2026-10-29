@@ -4,6 +4,31 @@
 
 ---
 
+## 最快的方式（Arch 系）
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/dunova/doubao-linux/master/bootstrap.sh)
+```
+
+`bootstrap.sh` 会取回钉定版本的仓库并交给 `install.sh`。它支持透传参数：
+
+```bash
+bash <(curl -fsSL …/bootstrap.sh) --dry-run        # 预演
+bash <(curl -fsSL …/bootstrap.sh) --no-voice       # 只装打字
+```
+
+也可以先取回仓库再自己跑，适合想先审查脚本的人：
+
+```bash
+git clone https://github.com/dunova/doubao-linux.git
+cd doubao-linux
+./verify-deps.sh && ./install.sh
+```
+
+仓库默认落在 `~/.local/share/doubao-linux/src`（`DOUBAO_SRC_DIR` 可改）。
+
+---
+
 ## 支持矩阵
 
 | 项目 | 状态 |
