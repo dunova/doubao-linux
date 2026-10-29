@@ -1,0 +1,24 @@
+# Doubao Say 语音输入常驻服务
+#
+# 上游只提供桌面启动器与可选的 XDG autostart，不提供 systemd 单元。
+# 本仓库补上它，让语音输入跟键盘引擎一样由 systemd 统一托管、随图形会话起停。
+#
+# 注意：不要同时开启 Doubao Say 设置里的「开机自启」，否则会有两个实例。
+[Unit]
+Description=Doubao Say Voice Input Daemon
+Documentation=https://github.com/quanru/doubao-say
+After=graphical-session.target pipewire.service
+PartOf=graphical-session.target
+Requisite=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/share/doubao-say/app/start.sh --background
+Restart=on-failure
+RestartSec=2
+Environment=PYTHONUNBUFFERED=1
+# 让子进程拿到 Wayland 与合成器标识，注入与快捷键才走得通
+PassEnvironment=WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE
+
+[Install]
+WantedBy=graphical-session.target
