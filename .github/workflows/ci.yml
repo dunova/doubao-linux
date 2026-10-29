@@ -1,0 +1,144 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: 语法与静态检查
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bash 语法
+        run: |
+          fail=0
+          for f in install.sh rollback.sh verify.sh verify-deps.sh scripts/*.sh; do
+            if bash -n "$f"; then echo "OK   $f"; else echo "FAIL $f"; fail=1; fi
+          done
+          exit $fail
+
+      - name: Python 语法
+        run: python3 -m py_compile scripts/merge_conf.py
+
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: '.'
+          additional_files: 'install.sh rollback.sh verify.sh verify-deps.sh'
+          severity: warning
+        continue-on-error: true
+
+  consistency:
+    name: 版本常量一致性
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: VERSION 与脚本内常量一致
+        run: |
+          set -e
+          ver="$(tr -d '[:space:]' < VERSION)"
+          echo "VERSION = $ver"
+          grep -q "v$ver" README.md || { echo "::error::README 未提及 v$ver"; exit 1; }
+          grep -q "$ver" CHANGELOG.md || { echo "::error::CHANGELOG 缺少 $ver 条目"; exit 1; }
+
+      - name: 校验和格式合法
+        run: |
+          set -e
+          # 每个钉定值必须是 64 位十六进制
+          for name in DOUBAO_EXE_SHA256 WINE_MONO_SHA256 DOUBAO_SAY_SHA_311 \
+                      DOUBAO_SAY_SHA_312 DOUBAO_SAY_SHA_313 DOUBAO_SAY_SHA_314; do
+            val="$(grep -E "^${name}=" install.sh | head -1 | cut -d'"' -f2)"
+            if [[ ! "$val" =~ ^[0-9a-f]{64}$ ]]; then
+              echo "::error::$name 不是合法 SHA-256: '$val'"; exit 1
+            fi
+            echo "$name OK"
+          done
+
+      - name: 脚本可执行位
+        run: |
+          set -e
+          for f in install.sh rollback.sh verify.sh verify-deps.sh; do
+            [[ -x "$f" ]] || { echo "::error::$f 缺少可执行位"; exit 1; }
+          done
+
+  no-binaries:
+    name: 二进制与凭据检查
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 不得包含官方二进制
+        run: |
+          set -e
+          bad=$(git ls-files | grep -Ei '\.(exe|dll|msi|ttc|ttf|zip|tar\.gz)$' || true)
+          if [[ -n "$bad" ]]; then
+            echo "::error::仓库中不应包含二进制文件:"; echo "$bad"; exit 1
+          fi
+          echo "无二进制文件"
+
+      - name: 不得包含凭据
+        run: |
+          set -e
+          # 常见凭据字段
+          if git grep -nEi '(access_token|sec_key|api_key|password)\s*["'"'"']?\s*[:=]\s*["'"'"'][A-Za-z0-9_\-]{16,}' -- . ':!*.md' ':!install.sh'; then
+            echo "::error::疑似包含真实凭据"; exit 1
+          fi
+          echo "未发现凭据"
+
+  merge-tool:
+    name: 配置合并器行为
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 键级合并与幂等
+        run: |
+          set -e
+          tmp="$(mktemp -d)"
+          cat > "$tmp/target.conf" <<'EOF'
+          # 用户自己的注释
+          Vertical Candidate List=True
+          Font="My Font 10"
+          CustomKey=keepme
+          [Section]
+          InnerKey=untouched
+          EOF
+
+          cat > "$tmp/patch.ini" <<'EOF'
+          Vertical Candidate List=False
+          Theme=Doubao-Compact
+          EOF
+
+          python3 scripts/merge_conf.py ini "$tmp/target.conf" "$tmp/patch.ini"
+
+          grep -q '^Vertical Candidate List=False' "$tmp/target.conf" || { echo "未替换目标键"; exit 1; }
+          grep -q '^Font="My Font 10"' "$tmp/target.conf"          || { echo "误改其它键"; exit 1; }
+          grep -q '^CustomKey=keepme' "$tmp/target.conf"           || { echo "丢失用户键"; exit 1; }
+          grep -q '^# 用户自己的注释' "$tmp/target.conf"            || { echo "丢失注释"; exit 1; }
+          grep -q '^InnerKey=untouched' "$tmp/target.conf"          || { echo "误改 [Section] 内键"; exit 1; }
+          grep -q '^Theme=Doubao-Compact' "$tmp/target.conf"        || { echo "未追加新键"; exit 1; }
+
+          # 幂等：第二次应报"无需变更"
+          out="$(python3 scripts/merge_conf.py ini "$tmp/target.conf" "$tmp/patch.ini")"
+          echo "$out" | grep -q '无需变更' || { echo "非幂等: $out"; exit 1; }
+          echo "合并器行为正确"
+
+      - name: JSON 合并保留未知键
+        run: |
+          set -e
+          tmp="$(mktemp -d)"
+          printf '{"waveform_style":"wave","keep_me":123}\n' > "$tmp/s.json"
+          python3 scripts/merge_conf.py json "$tmp/s.json" waveform_style=bars reduced_motion=false
+          python3 - "$tmp/s.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['waveform_style'] == 'bars', d
+          assert d['reduced_motion'] is False, d
+          assert d['keep_me'] == 123, d
+          print('JSON 合并正确')
+          PY

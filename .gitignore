@@ -1,3 +1,20 @@
+# 运行数据与构建产物
 work/
 config.local.json
 *.log
+*.part
+
+# 官方引擎与二进制（绝不入库）
+*.exe
+*.dll
+*.msi
+*.ttc
+*.ttf
+*.zip
+*.tar.gz
+
+# 本地环境
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
