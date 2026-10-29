@@ -9,9 +9,10 @@
 #   ./install.sh --no-voice       不装语音，只装打字
 #   ./install.sh --no-appearance  不套用豆包外观，保留你自己的主题
 #   ./install.sh --only-appearance 只重套外观（打字/语音已装好时用）
+#   ./install.sh --no-group-change 不自动把当前用户加入 input 组
 #
-# 需要 sudo 的只有 pacman 装系统包这一处，其余全部以当前用户身份完成。
-# 任何写入前先备份并记账，回退见 ./rollback.sh。
+# 需要 sudo 的地方只有两处：pacman 装系统包、usermod 追加 input 组。
+# 其余全部以当前用户身份完成。任何写入前先备份并记账，回退见 ./rollback.sh。
 # ==============================================================================
 set -uo pipefail
 
@@ -49,9 +50,10 @@ INNO_BIN="$INNO_BUILD/innoextract"
 
 # ── 参数 ────────────────────────────────────────────────────────────────────
 MODE="install"; SKIP_DEPS=0; WITH_VOICE=1; WITH_APPEARANCE=1
-ONLY_APPEARANCE=0; CHECK_ONLY=0
+ONLY_APPEARANCE=0; CHECK_ONLY=0; ADD_GROUP=1
+REJOIN_NEEDED=0
 
-usage() { sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '3,15p' "$0" | sed 's/^# \{0,1\}//'; }
 
 for a in "$@"; do
   case "$a" in
@@ -61,6 +63,7 @@ for a in "$@"; do
     --no-voice)        WITH_VOICE=0 ;;
     --no-appearance)   WITH_APPEARANCE=0 ;;
     --only-appearance) ONLY_APPEARANCE=1 ;;
+    --no-group-change) ADD_GROUP=0 ;;
     -h|--help)         usage; exit 0 ;;
     *) printf '未知参数: %s\n\n' "$a" >&2; usage; exit 2 ;;
   esac
@@ -80,8 +83,12 @@ source "$REPO_ROOT/scripts/40-appearance.sh"
 detect_session
 FONT_PATH=""
 
+# --check 走只读分支，但 MODE 要等进去才改成 dry-run；标题先按真实意图显示
+DISPLAY_MODE="$MODE"
+(( CHECK_ONLY )) && DISPLAY_MODE="check"
+
 printf '%s%s%s  |  v%s  |  模式=%s  |  %s\n' \
-  "$C_BOLD" "doubao-linux" "$C_RST" "$(cat "$REPO_ROOT/VERSION")" "$MODE" "$(date '+%F %T %z')"
+  "$C_BOLD" "doubao-linux" "$C_RST" "$(cat "$REPO_ROOT/VERSION")" "$DISPLAY_MODE" "$(date '+%F %T %z')"
 
 # ── 前置检查 ────────────────────────────────────────────────────────────────
 [[ "$(uname -s)" == "Linux" ]] || die "仅支持 Linux（当前 $(uname -s)）"
@@ -140,14 +147,27 @@ else
 fi
 
 # ── 收尾 ────────────────────────────────────────────────────────────────────
-step "5/6 设备权限自检"
-if ! id -nG | tr ' ' '\n' | grep -qx input; then
-  warn "当前用户不在 input 组：evdev 快捷键与 /dev/uinput 输入注入可能失败"
-  warn "需要时执行（本脚本不会替你改）:"
-  printf '    sudo usermod -aG input %s\n' "$(id -un)"
-  warn "然后注销重新登录"
-else
+step "5/6 设备权限"
+if id -nG | tr ' ' '\n' | grep -qx input; then
   ok "已在 input 组"
+elif (( ADD_GROUP )) && (( ! ONLY_APPEARANCE )); then
+  warn "当前用户不在 input 组 —— evdev 快捷键与文字注入需要它"
+  info "正在追加（只加不改，可逆）"
+  if [[ "${MODE:-install}" == "dry-run" ]]; then
+    printf '  %s[dry-run]%s sudo usermod -aG input %s\n' "$C_DIM" "$C_RST" "$(id -un)"
+  else
+    if sudo usermod -aG input "$(id -un)"; then
+      ledger_add "group-add" "input" - "user=$(id -un)"
+      REJOIN_NEEDED=1
+      ok "已加入 input 组"
+    else
+      warn "添加失败。可手动执行：sudo usermod -aG input $(id -un)"
+    fi
+  fi
+else
+  warn "当前用户不在 input 组，且已指定 --no-group-change"
+  warn "打字可用，但热键与文字注入可能失败。需要时自行执行："
+  printf '    sudo usermod -aG input %s\n' "$(id -un)"
 fi
 
 step "6/6 完成"
@@ -163,3 +183,8 @@ cat <<EOF
   回退：    ./rollback.sh --dry-run   # 先看会做什么
             ./rollback.sh --apply
 EOF
+
+if [[ "${REJOIN_NEEDED:-0}" == "1" ]]; then
+  printf '\n  %s%s%s\n' "$C_WARN" "⚠ 已把你加入 input 组，但组变更只在下次登录生效。" "$C_RST"
+  printf '  %s  现在注销并重新登录，热键与语音注入才会工作。输入法打字本身已可用。%s\n\n' "$C_WARN" "$C_RST"
+fi
