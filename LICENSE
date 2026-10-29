@@ -1,6 +1,9 @@
 MIT License
 
-Copyright (c) 2026 dunova
+Copyright (c) 2026 doubao-linux contributors
+Copyright (c) 2026 royess (doubao-ime-linux bridge)
+Copyright (c) 2026 quanru and contributors (Doubao Say)
+Copyright (c) 2026 lilong7676 (doubao-murmur, inherited voice components)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +25,25 @@ SOFTWARE.
 
 ---
 
-本仓库不分发豆包（Doubao）官方引擎、安装包或任何字节跳动二进制文件。
-安装脚本从官方渠道下载并校验 SHA-256。豆包引擎与词库的权利归字节跳动所有。
-上游桥接 royess/doubao-ime-linux 亦为 MIT。
+## 许可范围说明
+
+上述 MIT 许可覆盖本仓库自行编写的部分：安装与回退脚本、文档、外观主题、
+配置合并工具。
+
+它不覆盖以下内容：
+
+1. **豆包（Doubao）官方引擎、词库、设置程序、商标与云服务**。
+   权利归字节跳动所有。本仓库不包含、不再分发这些文件；
+   安装脚本仅从官方渠道下载并校验 SHA-256。
+   使用豆包服务另受其服务条款约束，与上述软件许可无关。
+
+2. **上游项目的代码**。上游桥接 royess/doubao-ime-linux 与
+   语音应用 quanru/doubao-say 均为 MIT，其原始版权声明保留在各自项目中；
+   本仓库在运行时拉取，不属于本仓库的分发物。
+
+3. **构建与运行时依赖**（Fcitx 5、Wine、Wine Mono、innoextract、
+   Noto CJK、GTK、PipeWire、PortAudio 等）。
+   它们各自保留原有许可，本仓库不做二次分发。
+
+本项目是非官方的互操作性实验，与字节跳动、豆包无隶属关系，未获其背书。
+详见 THIRD_PARTY.md。
