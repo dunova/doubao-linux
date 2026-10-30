@@ -114,3 +114,36 @@ LATEST_VER_DIR="$(ls -d "$STATE/app/versions/v*" 2>/dev/null | sort -V | tail -1
 ```bash
 systemctl --user stop doubao-keyboard.service && WINEPREFIX=/home/dunova/src/doubao-ime-linux/work/wineprefix wine reg add 'HKCU\SOFTWARE\DoubaoIme' /v VersionDir /t REG_SZ /d 'C:\DoubaoIme\versions\v0.9.0.0' /f && systemctl --user start doubao-keyboard.service && fcitx5 -r -d
 ```
+
+---
+
+## 六、脱亚入欧高精短语纠偏与用户词库接入（2026-10-30 追加）
+
+### 1. 现象与根因剖析
+- **现象**：用户在豆包键盘输入法中键入全拼 `tuoyaruou` 时，系统第一候选项固定为生僻组合字「拖亚茹偶」，未能命中「脱亚入欧」。
+- **根因确认（L1 确凿证据）**：
+  1. 官方 `v0.9.2.7` 提取的 137MB 离线词库（`c48352298dbd` 等）内，通过二进制全盘扫描 UTF-8 / UTF-16LE 确认**压根未收录「脱亚入欧」该 4 字词**；
+  2. 离线引擎根据贪心拼音统计算法，将 `tuo-ya-ru-ou` 拆解为 `拖`、`亚`、`茹`、`偶` 四个单字高频组合；
+  3. Fcitx5 与 Broker 原仅做直通透传，缺乏成语纠偏与用户词库热加载能力。
+
+### 2. 变更清单（Diff）
+- **修改文件**：`src/doubao-ime-linux/bridge/keyboard_broker.py`
+  - 新增 `CUSTOM_PHRASE_PATH = ~/.config/doubao-ime/custom_phrase.txt` 动态热加载；
+  - 内置 `tuoyaruou`、`tyro` 映射为「脱亚入欧」，`tuyarugou` 映射为「涂鸦入钩」；
+  - 拦截候选词列表注入，命中时将高精纠偏词置顶至第 0 位；
+  - 拦截选择请求 `S 0`，当选中注入短语时直接返回 `commit: phrase` 并发 `R` 重置底层拼音，实现瞬时上屏。
+- **配置文件落盘**：`~/.config/doubao-ime/custom_phrase.txt` 允许用户自由追加自定义词条。
+
+### 3. 实测验证记录
+- **全拼测试**：
+  - 输入：`tuoyaruou`
+  - 第一候选项：`脱亚入欧`
+  - 按空格/数字1（`S 0`）：直接上屏 **「脱亚入欧」**
+- **缩写测试**：
+  - 输入：`tyro`
+  - 第一候选项：`脱亚入欧`
+  - 按空格/数字1（`S 0`）：直接上屏 **「脱亚入欧」**
+- **涂鸦入钩测试**：
+  - 输入：`tuyarugou`
+  - 第一候选项：`涂鸦入钩`
+- **全套 16 项门禁复测**：`bash verify.sh` 输出 `全部通过：16 项`，Exit Code: 0。
