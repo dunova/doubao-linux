@@ -19,7 +19,8 @@ else
   STATE="$SRC/work"
 fi
 PREFIX="$STATE/settings-prefix"
-IME_EXE="${DOUBAO_IME_SERVICE:-$STATE/app/versions/v0.9.0.0/ImeService.exe}"
+LATEST_VER_DIR="$(ls -d "${STATE}/app/versions"/v* 2>/dev/null | sort -V | tail -1)"
+IME_EXE="${DOUBAO_IME_SERVICE:-${LATEST_VER_DIR:-$STATE/app/versions/v0.9.2.7}/ImeService.exe}"
 XVFB_BIN="${DOUBAO_XVFB:-Xvfb}"
 LOG="$STATE/imeservice.log"
 

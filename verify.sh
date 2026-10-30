@@ -85,14 +85,20 @@ grep -qi 'doubao' "$XDG_CONFIG_HOME/fcitx5/profile" 2>/dev/null \
   && chk "profile 中有 doubao 引擎槽" 1 || chk "profile 中有 doubao 引擎槽" 0
 
 if command -v fcitx5-remote >/dev/null; then
+  ORIG_STATE=$(timeout 5 fcitx5-remote 2>/dev/null || echo '1')
   ORIG=$(timeout 5 fcitx5-remote -n 2>/dev/null || echo '')
+  timeout 5 fcitx5-remote -o >/dev/null 2>&1
   timeout 5 fcitx5-remote -s doubao >/dev/null 2>&1; sleep 1
   CUR=$(timeout 5 fcitx5-remote -n 2>/dev/null || echo '')
   [[ "$CUR" == "doubao" ]] && chk "可切换到豆包引擎" 1 || chk "可切换到豆包引擎" 0 "当前=$CUR"
-  # 还原用户原本的引擎，不要留在 doubao 上
+  # 还原用户原本的引擎与状态
   if [[ -n "$ORIG" && "$ORIG" != "doubao" ]]; then
-    timeout 5 fcitx5-remote -s "$ORIG" >/dev/null 2>&1 && printf '  %s·%s 已还原原引擎 %s\n' "$C_DIM" "$C_RST" "$ORIG"
+    timeout 5 fcitx5-remote -s "$ORIG" >/dev/null 2>&1
   fi
+  if [[ "$ORIG_STATE" != "2" ]]; then
+    timeout 5 fcitx5-remote -c >/dev/null 2>&1
+  fi
+  [[ -n "$ORIG" && "$ORIG" != "doubao" ]] && printf '  %s·%s 已还原原引擎 %s\n' "$C_DIM" "$C_RST" "$ORIG"
 else
   chk "fcitx5-remote 可用" skip "未安装，跳过引擎切换测试"
 fi
